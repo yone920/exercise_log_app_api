@@ -3,5 +3,20 @@
   "type": "Running",
   "description": "Slow paced run acrros Brooklyn bridge",
   "distance": 12
+  },
+  {
+  "type": "Walking",
+  "description": "Fast paced run acrros Brooklyn bridge",
+  "distance": 44
+  },
+  {
+  "type": "Running",
+  "description": "Accross Bronx bridge",
+  "distance": 55
+  },
+  {
+  "type": "Walking",
+  "description": "Sunny day in bronx",
+  "distance": 334
   }
 ]
