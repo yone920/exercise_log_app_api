@@ -18,7 +18,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
 //Read JSON files
 const exercises = JSON.parse(
-  fs.readFileSync(`${__dirname}/_data/exercises.json`, 'utf-8')
+  fs.readFileSync(`${__dirname}/data/exercises.json`, 'utf-8')
 );
 
 // Import into DB

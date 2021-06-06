@@ -11,6 +11,7 @@ const ExersiceSchema = new mongoose.Schema({
     type: String,
     required: false,
     maxLength: [400, 'Description can not be more than 400 charachters'],
+    unique: false,
   },
   distance: {
     type: Number,
@@ -25,5 +26,11 @@ const ExersiceSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+// Create Date
+// ExersiceSchema.pre('save', function (next) {
+//   console.log('middleware run', this.type);
+//   next();
+// });
 
 module.exports = mongoose.model('Exercise', ExersiceSchema);
