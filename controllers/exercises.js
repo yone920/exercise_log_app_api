@@ -6,7 +6,68 @@ const Exercise = require('../models/Exercise');
 // @access Public
 exports.getExercises = async (req, res, next) => {
   try {
-    const exercises = await Exercise.find();
+    let query;
+
+    // Copy req.query
+    const reqQuery = { ...req.query };
+
+    //Fields to exclude
+    const removeFields = ['select', 'sort', 'limit', 'page'];
+
+    removeFields.forEach((param) => delete reqQuery[param]);
+    // Create qury string
+    let queryStr = JSON.stringify(reqQuery);
+
+    // Create operators ($gt, $gte ...)
+    queryStr = queryStr.replace(
+      /\b(gt|gte|lt|lte|in)\b/g,
+      (match) => `$${match}`
+    );
+
+    // Finding resources
+    query = Exercise.find(JSON.parse(queryStr));
+
+    // Select fields
+    if (req.query.select) {
+      const fields = req.query.select.split(',').join(' ');
+      query = query.select(fields);
+    }
+
+    // Sort
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query.sort('-createdAt');
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 25;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const total = await Exercise.countDocuments();
+
+    query = query.skip(startIndex).limit(limit);
+
+    const exercises = await query;
+
+    // Pagination result
+    const pagination = {};
+
+    if (endIndex < total) {
+      pagination.next = {
+        page: page + 1,
+        limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      pagination.prev = {
+        page: page - 1,
+        limit,
+      };
+    }
 
     // this gives an object with dates as keys
     const groups = exercises.reduce((groups, exercise) => {
@@ -37,9 +98,12 @@ exports.getExercises = async (req, res, next) => {
       };
     });
 
-    res
-      .status(200)
-      .json({ success: true, count: exercises.length, data: groupArrays });
+    res.status(200).json({
+      success: true,
+      count: exercises.length,
+      pagination,
+      data: groupArrays,
+    });
   } catch (error) {
     next(error);
   }
