@@ -1,26 +1,24 @@
 const mongoose = require('mongoose');
 
 const ExersiceSchema = new mongoose.Schema({
-  type: {
+  exerciseType: {
     type: String,
-    enum: ['Running', 'Walking'],
+    enum: ['Running', 'Walking', 'Pushup'],
     required: [true, 'Please add a name'],
     maxLength: [50, 'Type can not be more than 50 charachters'],
   },
   description: {
     type: String,
-    required: false,
     maxLength: [400, 'Description can not be more than 400 charachters'],
-    unique: false,
   },
   distance: {
     type: Number,
-    required: [true, 'Please add a number'],
   },
-  // goal: {
-  //   type: String,
-  //   required: false,
-  // },
+  goal: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Goal',
+    required: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
