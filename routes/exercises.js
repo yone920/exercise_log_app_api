@@ -1,10 +1,20 @@
 const express = require('express');
-const {getExercises, createExercises, updateExercises, deleteExercises, getExercise} = require('../controllers/exercises')
+// const { model } = require('mongoose');
 
-const router = express.Router();
+const {
+  getExercises,
+  getExercise,
+  createExercise,
+  updateExercises,
+  deleteExercises,
+} = require('../controllers/exercises');
 
-router.route('/').get(getExercises).post(createExercises);
-router.route('/:id').put(updateExercises).delete(deleteExercises).get(getExercise)
+const router = express.Router({ mergeParams: true });
 
-
+router.route('/').get(getExercises).post(createExercise);
+router
+  .route('/:id')
+  .get(getExercise)
+  .put(updateExercises)
+  .delete(deleteExercises);
 module.exports = router;

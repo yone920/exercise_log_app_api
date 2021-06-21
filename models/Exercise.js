@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const ExersiceSchema = new mongoose.Schema({
-  exerciseType: {
+  activity: {
     type: String,
     enum: ['Running', 'Walking', 'Pushup'],
     required: [true, 'Please add a name'],
