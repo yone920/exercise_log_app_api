@@ -10,6 +10,7 @@ const ExersiceSchema = new mongoose.Schema({
   description: {
     type: String,
     maxLength: [400, 'Description can not be more than 400 charachters'],
+    unique: false,
   },
   distance: {
     type: Number,
@@ -23,6 +24,38 @@ const ExersiceSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+ExersiceSchema.statics.getAggregateDistance = async function (goalId) {
+  const obj = await this.aggregate([
+    {
+      $match: { goal: goalId },
+    },
+    {
+      $group: {
+        _id: '$goal',
+        totalDistance: { $sum: '$distance' },
+      },
+    },
+  ]);
+
+  try {
+    const goal = await this.model('Goal').findByIdAndUpdate(goalId, {
+      totalCoveredDistance: obj[0].totalDistance,
+    });
+  } catch (error) {
+    console.log('error:', error);
+  }
+};
+
+// Call getAggregate after save
+ExersiceSchema.post('save', function () {
+  this.constructor.getAggregateDistance(this.goal);
+});
+
+// Call getAggregate before save
+ExersiceSchema.pre('save', function () {
+  this.constructor.getAggregateDistance(this.goal);
 });
 
 // Create Date

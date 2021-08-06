@@ -1,5 +1,6 @@
 const ErrorResponse = require('../utils/errorResponse');
 const Exercise = require('../models/Exercise');
+const Goal = require('../models/Goal');
 
 // #desc Get all exercises
 // Route GET /api/v1/exercises
@@ -8,53 +9,19 @@ const Exercise = require('../models/Exercise');
 
 exports.getExercises = async (req, res, next) => {
   try {
-    let query;
-
     if (req.params.goalId) {
-      query = Exercise.find({ goal: req.params.goalId });
+      const exercises = await Exercise.find({ goal: req.params.goalId });
+
+      res.status(200).json({
+        succes: true,
+        count: exercises.length,
+        data: exercises
+      })
     } else {
-      query = Exercise.find().populate({
-        path: 'goal',
-        select: 'name',
-      });
+      res.status(200).json(res.advancedResults)
     }
 
-    const exercises = await query;
 
-    // this gives an object with dates as keys
-    const groups = exercises.reduce((groups, exercises) => {
-      const date = JSON.stringify(exercises.createdAt)
-        .split('T')[0]
-        .replace(/"/g, '');
-      if (!groups[date]) {
-        groups[date] = [];
-      }
-      groups[date].push(exercises);
-      return groups;
-    }, {});
-
-    // rearange onject as an array
-    const groupArrays = Object.keys(groups).map((date) => {
-      var options = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      };
-
-      const formattedDate = new Date(date).toLocaleDateString('en-US', options);
-      return {
-        formattedDate,
-        count: groups[date].length,
-        exercises: groups[date],
-      };
-    });
-
-    res.status(200).json({
-      succes: true,
-      count: exercises.length,
-      data: groupArrays,
-    });
   } catch (error) {
     next(error);
   }
@@ -65,24 +32,39 @@ exports.getExercises = async (req, res, next) => {
 // @access Public
 exports.getExercise = async (req, res, next) => {
   try {
-    const exercises = await Exercise.findById(req.params.id);
-    if (!exercises)
+    const exercise = await Exercise.findById(req.params.id).populate({
+      path: 'goal',
+      select: 'name activity',
+    });
+
+    if (!exercise)
       return next(
         new ErrorResponse(`Exercise not found with id of ${req.params.id}`, 400)
       );
-    res.status(200).json({ success: true, data: exercises });
+
+    res.status(200).json({ success: true, data: exercise });
   } catch (error) {
     next(error);
   }
 };
 
 // #desc Create new  exercises
-// Routr POST /api/v1/exercise
-// @access Public
+// Rouer POST /api/v1/goals/:goalId/exercises
+// @access Private
 exports.createExercise = async (req, res, next) => {
   try {
-    const exercises = await Exercise.create(req.body);
-    res.status(201).json({ success: true, data: exercises });
+    req.body.goal = req.params.goalId;
+
+    const goal = await Goal.findById(req.params.goalId);
+
+    if (!goal) {
+      return next(
+        new ErrorResponse(`Goal not found with id of ${req.params.goalId}`, 404)
+      );
+    }
+
+    const exercise = await Exercise.create(req.body);
+    res.status(201).json({ success: true, data: exercise });
   } catch (error) {
     next(error);
   }

@@ -28,6 +28,7 @@ const GoalSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+    totalCoveredDistance: Number,
   },
   {
     toJSON: { virtuals: true },
